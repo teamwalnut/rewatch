@@ -1,9 +1,10 @@
+#!/bin/bash
+
+cd $(dirname $0)
 source "./utils.sh"
-cd ../testrepo
+cd "$1" || exit
 
 bold "Test: It should lock - when watching"
-
-sleep 1
 
 if rewatch clean &> /dev/null;
 then
@@ -41,7 +42,7 @@ success "Watcher Started"
 
 sleep 1
 
-if cat tmp.txt | grep 'Error while trying to get lock:' &> /dev/null; 
+if grep 'Error while trying to get lock:' tmp.txt &> /dev/null; 
 then
   error "Lock not removed correctly"
   exit_watcher

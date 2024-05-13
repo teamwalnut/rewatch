@@ -13,13 +13,38 @@ else
   exit 1
 fi
 
-bold "Make sure the testrepo is clean"
-if git diff --exit-code ../testrepo &> /dev/null; 
+bold "Make sure the testrepo_yarn is clean"
+if git diff --exit-code ./testrepo_yarn &> /dev/null; 
 then
-  success "Testrepo has no changes"
+  success "testrepo_yarn has no changes"
 else 
-  error "Testrepo is not clean to start with"
+  error "testrepo_yarn is not clean to start with"
   exit 1
 fi
 
-./compile.sh && ./watch.sh && ./lock.sh && ./suffix.sh
+bold "Make sure the testrepo_pnpm is clean"
+if git diff --exit-code ./testrepo_pnpm &> /dev/null; 
+then
+  success "testrepo_pnpm has no changes"
+else 
+  error "testrepo_pnpm is not clean to start with"
+  exit 1
+fi
+
+bold "Yarn Tests"
+./compile.sh "testrepo_yarn" \
+        && sleep 1 \
+        && ./watch.sh "testrepo_yarn" \
+        && sleep 1 \
+        && ./lock.sh "testrepo_yarn" \
+        && sleep 1 \
+        && ./suffix.sh "testrepo_yarn";
+
+bold "PNPM Tests"
+./compile.sh "testrepo_pnpm" \
+        && sleep 1 \
+        && ./watch.sh "testrepo_pnpm" \
+        && sleep 1 \
+        && ./lock.sh "testrepo_pnpm" \
+        && sleep 1 \
+        && ./suffix.sh "testrepo_pnpm";

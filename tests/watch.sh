@@ -1,5 +1,8 @@
+#!/bin/bash
+
+cd $(dirname $0)
 source "./utils.sh"
-cd ../testrepo
+cd "$1" || exit
 
 bold "Test: It should watch"
 

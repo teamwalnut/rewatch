@@ -1,11 +1,12 @@
 #!/bin/bash
+
 cd $(dirname $0)
 source "./utils.sh"
-cd ../testrepo
+cd "$1" || exit
 
 bold "Test: It should compile"
 
-if rewatch clean &> /dev/null;
+if rewatch clean
 then
   success "Repo Cleaned"
 else 
@@ -13,7 +14,7 @@ else
   exit 1
 fi
 
-if rewatch &> /dev/null; 
+if rewatch build &> /dev/null
 then
   success "Repo Built"
 else 
@@ -24,7 +25,7 @@ fi
 
 if git diff --exit-code ./; 
 then
-  success "Testrepo has no changes"
+  success "testrepo has no changes"
 else 
   error "Build has changed"
   exit 1
@@ -33,29 +34,29 @@ fi
 node ./packages/main/src/Main.mjs > ./packages/main/src/output.txt
 
 mv ./packages/main/src/Main.res ./packages/main/src/Main2.res
-rewatch build --no-timing=true &> ../tests/snapshots/rename-file.txt
+rewatch build --no-timing=true &> ../snapshots/rename-file-"$1".txt
 mv ./packages/main/src/Main2.res ./packages/main/src/Main.res
 rewatch build &>  /dev/null
 mv ./packages/main/src/ModuleWithInterface.resi ./packages/main/src/ModuleWithInterface2.resi
-rewatch build --no-timing=true &> ../tests/snapshots/rename-interface-file.txt
+rewatch build --no-timing=true &> ../snapshots/rename-interface-file-"$1".txt
 mv ./packages/main/src/ModuleWithInterface2.resi ./packages/main/src/ModuleWithInterface.resi
 rewatch build &> /dev/null
 mv ./packages/main/src/ModuleWithInterface.res ./packages/main/src/ModuleWithInterface2.res
-rewatch build --no-timing=true &> ../tests/snapshots/rename-file-with-interface.txt
+rewatch build --no-timing=true &> ../snapshots/rename-file-with-interface-"$1".txt
 mv ./packages/main/src/ModuleWithInterface2.res ./packages/main/src/ModuleWithInterface.res
 rewatch build &> /dev/null
 
 # when deleting a file that other files depend on, the compile should fail
 rm packages/dep02/src/Dep02.res
-rewatch build --no-timing=true &> ../tests/snapshots/remove-file.txt
+rewatch build --no-timing=true &> ../snapshots/remove-file-"$1".txt
 # replace the absolute path so the snapshot is the same on all machines
-replace "s/$(pwd | sed "s/\//\\\\\//g")//g" ../tests/snapshots/remove-file.txt
+replace "s/$(pwd | sed "s/\//\\\\\//g")//g" ../snapshots/remove-file-"$1".txt
 git checkout -- packages/dep02/src/Dep02.res
 rewatch build &> /dev/null
 
 # it should show an error when we have a dependency cycle
 echo 'Dep01.log()' >> packages/new-namespace/src/NS_alias.res
-rewatch build --no-timing=true &> ../tests/snapshots/dependency-cycle.txt
+rewatch build --no-timing=true &> ../snapshots/dependency-cycle-"$1".txt
 git checkout -- packages/new-namespace/src/NS_alias.res
 rewatch build &> /dev/null
 
@@ -88,8 +89,8 @@ else
 fi
 
 # see if the snapshots have changed
-changed_snapshots=$(git ls-files  --modified ../tests/snapshots)
-if git diff --exit-code ../tests/snapshots &> /dev/null; 
+changed_snapshots=$(git ls-files  --modified ../snapshots)
+if git diff --exit-code ../snapshots &> /dev/null; 
 then
   success "Snapshots are correct"
 else 
@@ -98,9 +99,9 @@ else
   # and then cat their contents
   printf "\n\n"
   for file in $changed_snapshots; do
-    bold $file
+    bold "$file"
     # show diff of file vs contents in git
-    git diff $file $file
+    git diff "$file" "$file"
     printf "\n\n"
   done
 
